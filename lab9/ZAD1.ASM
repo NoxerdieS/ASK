@@ -3,7 +3,6 @@ reset:
 rep:
 	IN 00
 	MOV [BL], AL
-	CMP
 	INC BL
 	CMP BL, FF
 	JZ reset
