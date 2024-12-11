@@ -1,6 +1,6 @@
 MOV AL, 11
 rep:
 	OUT 05
-	ROL AL
+	ROR AL
 JMP rep
 END
