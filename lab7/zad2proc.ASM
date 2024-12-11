@@ -1,0 +1,30 @@
+JMP start
+
+DB 5
+DB 7
+DB 4
+DB 8
+DB FF
+
+ORG 10
+MOV DL, C0
+rep:
+MOV BL, [AL]
+CMP BL, FF
+JZ end
+CALL 30
+MOV [DL], BL
+INC AL
+INC DL
+JMP rep
+RET
+
+ORG 30
+ADD BL, 30
+RET
+
+start:
+MOV AL, 02
+CALL 10
+end:
+END

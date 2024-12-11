@@ -1,0 +1,13 @@
+JMP Start
+ORG 40
+ADD AL, 30
+RET
+Start:
+MOV CL, C0
+MOV AL, 3
+call 40
+MOV [CL], AL
+MOV AL, 7
+call 40
+MOV [CL], AL
+END

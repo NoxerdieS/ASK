@@ -1,0 +1,26 @@
+JMP start
+
+DB 48
+DB 45
+DB 4C
+DB 4C
+DB 4F
+DB 0
+
+ORG 50
+MOV DL, C0
+MOV AL, 02
+rep:
+MOV BL, [AL]
+CMP BL, 0
+JZ end
+MOV [DL], BL
+INC AL
+INC DL
+JMP rep
+RET
+
+start:
+CALL 50
+end:
+END

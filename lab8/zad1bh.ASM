@@ -1,0 +1,15 @@
+Start:
+	MOV AL, 84
+	OUT 01
+	MOV AL, C8
+	OUT 01
+	MOV AL, 30
+	OUT 01
+	MOV AL, 58
+	OUT 01
+	MOV AL, 58
+	OUT 01
+
+	JMP Start
+
+END

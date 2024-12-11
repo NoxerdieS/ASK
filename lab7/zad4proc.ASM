@@ -1,0 +1,37 @@
+JMP start
+
+DB "Hello"
+DB 0
+
+ORG 10
+POP CL
+rep:
+MOV BL, [AL]
+CMP BL, 0
+JZ end
+PUSH BL
+INC AL
+JMP rep
+end:
+PUSH CL
+RET
+
+ORG 30
+POP AL
+MOV DL, C0
+rep1:
+POP CL
+CMP CL, 48
+MOV [DL], CL
+JZ end1
+INC DL
+JMP rep1
+PUSH AL
+RET
+
+start:
+MOV AL, 02
+CALL 10
+CALL 30
+end1:
+END
