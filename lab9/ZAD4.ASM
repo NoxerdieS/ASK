@@ -6,7 +6,7 @@ reset:
 	MOV BL, 80
 
 CALL 40
-chuj:
+next_call:
 	MOV BL, 80
 	CALL 60
 
@@ -26,7 +26,7 @@ ret:
 ORG 40
 	MOV AL, [BL]
 	CMP AL, 0D
-	JZ chuj
+	JZ next_call
 	ADD AL, 20
 	MOV [BL], AL
 	INC BL
