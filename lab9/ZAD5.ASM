@@ -1,0 +1,34 @@
+MOV CL, 0
+Start:
+	IN 00
+	SUB AL, 30
+	ADD CL, AL
+	JS end
+	CALL 30
+	CALL 50
+	CALL 70
+	JMP Start
+ORG 30
+	PUSH CL
+	POP BL
+	MOD BL, A
+	ADD BL, 30
+	MOV [C4], BL
+	RET
+ORG 50
+	PUSH CL
+	POP BL
+	DIV BL, A
+	MOD BL, A
+	ADD BL, 30
+	MOV [C3], BL
+	RET
+ORG 70
+	PUSH CL
+	POP BL
+	DIV BL, 64
+	ADD BL,30
+	MOV [C2], BL
+	RET
+end:
+	END

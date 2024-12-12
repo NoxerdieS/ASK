@@ -7,6 +7,7 @@ MOV CL, C0
 MOV AL, 3
 call 40
 MOV [CL], AL
+INC CL
 MOV AL, 7
 call 40
 MOV [CL], AL

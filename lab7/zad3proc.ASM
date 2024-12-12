@@ -9,7 +9,6 @@ DB 0
 
 ORG 50
 MOV DL, C0
-MOV AL, 02
 rep:
 MOV BL, [AL]
 CMP BL, 0
@@ -21,6 +20,7 @@ JMP rep
 RET
 
 start:
+MOV AL, 02
 CALL 50
 end:
 END
