@@ -1,5 +1,9 @@
 reset:
 	MOV BL, 60
+
+reset2:
+	MOV AL, 
+	
 rep:
 	IN 00
 	MOV [BL], AL
