@@ -1,101 +1,46 @@
-    MOV CL,C0
-    MOV DL,E0
-
-; Wczytanie zdania
+MOV CL, C1
+MOV BL, D0
 rs:
-    IN 00
-    MOV [CL],AL
-    INC CL
-    CMP CL,DF
-    JNZ rs1
-    MOV CL,C0
+    IN 00          ; Pobierz znak z klawiatury do AL
+    MOV [CL], AL    ; Zapisz pobrany znak w pamiêci wyœwietlacza pod adresem CL
+    INC CL          ; Przesuñ wskaŸnik wyœwietlacza o jeden znak w przód
+    CMP CL, BL      ; SprawdŸ, czy osi¹gniêto koniec obszaru wyœwietlacza
+    JNZ rs1         ; Jeœli nie, przejdŸ do rs1
+    MOV CL, C0       ; Jeœli tak, zresetuj CL do pocz¹tku (C0)
 rs1:
-    CMP AL,2E
-    JZ ds
-    JMP rs
+    CMP AL, 2E      ; SprawdŸ, czy wczytany znak jest znakiem koñcz¹cym
+    JZ ds           ; Jeœli tak, zakoñcz procedurê (przejdŸ do ds)
+    JMP rs          ; Jeœli nie, kontynuuj wczytywanie znaków
+
+MOV CL, E0
+MOV BL, EF
+rs2:
+    IN 00          ; Pobierz znak z klawiatury do AL
+    MOV [CL], AL    ; Zapisz pobrany znak w pamiêci wyœwietlacza pod adresem CL
+    INC CL          ; Przesuñ wskaŸnik wyœwietlacza o jeden znak w przód
+    CMP CL, BL      ; SprawdŸ, czy osi¹gniêto koniec obszaru wyœwietlacza
+    JNZ rs1         ; Jeœli nie, przejdŸ do rs1
+    MOV CL, E0       ; Jeœli tak, zresetuj CL do pocz¹tku (C0)
+rs12:
+    CMP AL, DL      ; SprawdŸ, czy wczytany znak jest znakiem koñcz¹cym
+    JZ ds           ; Jeœli tak, zakoñcz procedurê (przejdŸ do ds)
+    JMP rs  
+
+MOV CL, EF
+MOV BL, EF
+rs3:
+    IN 00          ; Pobierz znak z klawiatury do AL
+    MOV [CL], AL    ; Zapisz pobrany znak w pamiêci wyœwietlacza pod adresem CL
+    INC CL          ; Przesuñ wskaŸnik wyœwietlacza o jeden znak w przód
+    CMP CL, BL      ; SprawdŸ, czy osi¹gniêto koniec obszaru wyœwietlacza
+    JNZ rs1         ; Jeœli nie, przejdŸ do rs1
+    MOV CL, E0       ; Jeœli tak, zresetuj CL do pocz¹tku (C0)
+rs13:
+    CMP AL, DL      ; SprawdŸ, czy wczytany znak jest znakiem koñcz¹cym
+    JZ ds           ; Jeœli tak, zakoñcz procedurê (przejdŸ do ds)
+    JMP rs  
+
 ds:
+    RET   
 
-; Wczytanie frazy do znalezienia
-    MOV DL,E0
-rf:
-    IN 00
-    MOV [DL],AL
-    INC DL
-    CMP DL,EF
-    JNZ rf1
-    MOV DL,E0
-rf1:
-    CMP AL,0D
-    JZ df
-    JMP rf
-df:
-
-; Liczenie d³ugoœci frazy
-    MOV BL,E0
-    MOV AL,0
-clp:
-    MOV DL,[BL]
-    CMP DL,0D
-    JZ dlen
-    INC AL
-    INC BL
-    JMP clp
-dlen:
-    MOV BL,71
-    MOV [BL],AL
-
-; Wczytanie frazy zastêpuj¹cej
-    MOV DL,F0
-rr:
-    IN 00
-    MOV [DL],AL
-    INC DL
-    CMP DL,FF
-    JNZ rr1
-    MOV DL,F0
-rr1:
-    CMP AL,0D
-    JZ dr
-    JMP rr
-dr:
-
-; Wyszukiwanie frazy
-    MOV CL,C0
-    MOV DL,E0
-    MOV BL,70
-	MOV AL, 0
-    MOV [BL],AL
-
-sr:
-    MOV AL,[CL]
-    MOV BL,[DL]
-    CMP AL,BL
-    JZ cmpm
-    CMP AL,2E
-    JZ endp
-    INC CL
-    MOV DL,E0
-    MOV BL,70
-	MOV AL, 0
-    MOV [BL], AL
-    JMP sr
-
-cmpm:
-    MOV BL,70
-    MOV AL,[BL]
-    INC AL
-    MOV [BL],AL
-    MOV BL,71
-    MOV DL,[BL]
-    CMP AL,DL
-    JZ matched
-    INC CL
-    INC DL
-    JMP sr
-
-matched:
-; Tu logika zamiany frazy na inn¹ (niezaimplementowana)
-    JMP endp
-
-endp:
-    END
+END  
