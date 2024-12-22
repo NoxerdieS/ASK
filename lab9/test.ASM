@@ -1,84 +1,176 @@
-    MOV DL, 2E         ; znak koñcz¹cy dla zdania to '.'
-    MOV CL, C0         ; pocz¹tek zapisu zdania
-    MOV BL, DF         ; koniec zakresu dla zdania      
-    MOV [BA], CL       ; przechowaj adres w komórce pamiêci B0
-    CALL 30
+;----------------------------------------------------
+; G£ÓWNA CZÊŒÆ PROGRAMU
+;----------------------------------------------------
 
-    MOV DL, 0D         ; znak koñcz¹cy dla frazy to Enter
-    MOV CL, E0         ; pocz¹tek zapisu frazy
-    MOV BL, EF         ; koniec zakresu dla frazy
-    MOV [BA], CL       ; przechowaj adres w komórce pamiêci B0
-    CALL 30
+    MOV CL, C0         ; Wczytanie zdania do C0.. a¿ do Enter
+    CALL 13
 
-    MOV CL, F0         ; pocz¹tek zapisu frazy zastêpuj¹cej
-    MOV BL, FF         ; koniec zakresu dla frazy
-    MOV [BA], CL       ; przechowaj adres w komórce pamiêci B0
-    CALL 30
-    CALL 4A
+    MOV CL, E0         ; Wczytanie frazy do E0.. a¿ do Enter
+    CALL 13
 
-ORG 30			; procedura wczytuj¹ca dane
+    MOV CL, F0         ; Wczytanie frazy zastêpuj¹cej do F0.. a¿ do Enter
+    CALL 13
+
+    ; Wywo³ujemy wyszukiwanie i zamianê. 
+    ; Uwaga: teraz samo wyszukiwanie (ORG 26) zawiera w sobie pêtlê wielokrotnego wyszukiwania.
+    CALL 22
+
+
+
+
+;----------------------------------------------------
+; PROCEDURA Wczytywania danych (ORG 18)
+;----------------------------------------------------
+; Wczytuje znaki z klawiatury do [CL], a¿ do napotkania Enter (0D).
+
+ORG 13
 rs:
-    IN 00              ; wczytaj znak do AL
-    MOV [CL], AL       ; zapisz znak w pamiêci wyœwietlacza
+    IN 00             ; pobierz znak do AL
+    MOV [CL], AL      ; zapisz w pamiêci
     INC CL
-    CMP CL, BL
-    JNZ rs1
-    MOV AL, BA       ; wczytaj wartoœæ pocz¹tkow¹ z komórki pamiêci 70
-    MOV CL, [AL]         ; ustaw wartoœæ w rejestrze CL
-rs1:
-    CMP AL, DL         ; sprawdŸ znak koñcz¹cy
-    JZ ret
+    CMP AL, 0D        ; jeœli Enter, zakoñcz
+    JZ finish
     JMP rs
 
-ORG 4A		; procedura porównuj¹ca zdanie i frazê
-    MOV CL, C0    ; wskaŸnik na pocz¹tek zdania
-    MOV DL, E0    ; wskaŸnik na pocz¹tek frazy
-    MOV AL, 0
-    MOV [BC], AL  ; isfound = 0
+finish:
+    RET
+
+
+;----------------------------------------------------
+; PROCEDURA Wielokrotnego Wyszukiwania i Zamiany (ORG 26)
+;----------------------------------------------------
+; - Szuka frazy (E0..0D) w zdaniu (C0..)
+; - Koñczy przy kropce ('.' = 2E) lub gdy nie ma dalszych dopasowañ.
+; - Za ka¿dym znalezieniem frazy wywo³uje zamianê (ORG 79).
+
+ORG 22
+start_search:
+    MOV CL, C0       ; CL = wskaŸnik na pocz¹tek zdania
+cont_search:
+    ; BD = 0 => nie mamy dopasowania
+    MOV BL, 0      
+MOV [BD], BL
+
+    MOV DL, E0       ; DL = pocz¹tek frazy
 
 rep:
-    MOV AL, [CL]  ; AL = bie¿¹cy znak ze zdania
-    MOV BL, [DL]  ; BL = bie¿¹cy znak z frazy
+    MOV AL, [CL]     ; pobierz znak zdania
+    CMP AL, 2E       ; sprawdŸ kropkê
+    JZ end_search    ; jeœli '.', koñcz przetwarzanie
+
+    ; porównaj z bie¿¹cym znakiem frazy
+    MOV BL, [DL]     ; BL = znak frazy
     CMP AL, BL
     JZ matched_char
-    CMP AL, 2E     ; sprawdŸ czy koniec zdania
-    JZ ret         ; jeœli tak, wyjdŸ (fraza nieznaleziona)
-    ; Niezgodnoœæ, reset:
-    MOV AL, 0
-    MOV [BC], AL   ; isfound = 0
-    MOV DL, E0     ; wróæ do pocz¹tku frazy
-    INC CL         ; przejdŸ do kolejnej litery zdania
+
+    ; brak dopasowania:
+    MOV BL, 0      
+MOV [BD], BL     ; BD = 0
+    MOV DL, E0       ; wróæ do pocz¹tku frazy
+    INC CL
     JMP rep
 
 matched_char:
-    MOV BL,[BC]
-    CMP BL,0       ; sprawdŸ czy isfound = 0 (pierwszy pasuj¹cy znak frazy)
+    ; sprawdŸ, czy BD ju¿ ustawione (czyli czy to kontynuacja dopasowania)
+    MOV BL, BD
+    MOV AL, [BL]
+    CMP AL, 0
     JNZ continue_match
 
-    ; Pierwszy pasuj¹cy znak
-    MOV AL,1
-    MOV BL,BC
-    MOV [BL],AL     ; isfound = 1
-    MOV BL,BD
-    MOV [BL],CL     ; BD = pocz¹tek wyst¹pienia
+    ; skoro AL=0 -> pierwszy znak pasuje => zapamiêtaj w BD pocz¹tek
+	MOV [BC], AL
+	MOV CL, [BC]
+    MOV [BL], AL     ; BD = CL
 
 continue_match:
     INC CL
     INC DL
-    MOV BL,[DL]
-    CMP BL,0D
-    JZ phrase_end   ; dopiero teraz sprawdŸ, czy koniec frazy!
+    MOV BL, [DL]
+    CMP BL, 0D       ; koniec frazy?
+    JZ phrase_end
     JMP rep
 
 phrase_end:
-    ; Ca³a fraza dopasowana, BL = 0D oznacza koniec frazy
-    ; CL wskazuje teraz na znak po ostatnim dopasowanym znaku frazy w zdaniu
-    DEC CL           ; cofamy wskaŸnik o 1, by wskazaæ na ostatni dopasowany znak
-    MOV [BE], CL     ; BE = koniec frazy
-    JMP ret
+    DEC CL
+    MOV [BE], CL       ; BE = koniec wyst¹pienia
+    CALL 90            ; dokonaj zamiany
 
-ret:
+    ; Po zamianie przesuwamy siê o 1 dalej, ¿eby nie zaczynaæ wyszukiwania
+    ; od œrodka tego samego fragmentu.
+    MOV AL, [BE]
+    INC AL
+	MOV [BC], AL
+	MOV CL, [BC]
+
+    ; Reset frazy
+    MOV DL, E0
+
+    ; BD = 0 => nie mamy aktywnego dopasowania
+    MOV BL, 0
+    MOV [BD], BL
+
+    JMP rep            ; wracamy do pêtli wyszukiwania
+
+
+end_search:
+    ; Natrafiliœmy na kropkê, koñczymy wyszukiwanie
     RET
 
-end:
-    END
+
+;----------------------------------------------------
+; PROCEDURA Zamiany (ORG 79)
+;----------------------------------------------------
+; Zamienia fragment [BD]..[BE] w zdaniu na frazê z F0.. (koñcz¹c¹ siê 0D)
+; Nadpisuje tyle bajtów, ile wynosi ró¿nica [BE]-[BD] + 1.
+; Jeœli fraza zastêpuj¹ca jest krótsza/d³u¿sza - ta prosta wersja tylko nadpisze 
+; w obrêbie [BD]..[BE]. Dalsze dopasowanie w zdaniu realizujemy bez przesuwania.
+
+ORG 90
+    ; AL, BL, CL, DL uwaga na to, co jest w rejestrach
+    ; Wejœcie:
+    ;  - [BD], [BE] => zakres do nadpisania
+    ;  - Fraza zastêpuj¹ca w F0..(0D)
+    ;
+    ; Za³ó¿my, ¿e w start_search zaraz przed CALL 79:
+    ;    CL wskazuje na koniec dopasowania (CL=[BE]),
+    ;    Ale my i tak ustalimy rejestry tutaj.
+
+    ; Pocz¹tek frazy zastêpuj¹cej -> AL
+    MOV AL, F0
+
+    ; Pocz¹tek zastêpowanego obszaru -> CL = [BD]
+    MOV BL, BD
+    MOV CL, [BL]
+
+    ; Pierwszy znak frazy zastêpuj¹cej:
+    MOV DL, [AL]
+
+switch_loop:
+    MOV [CL], DL
+    INC AL
+    INC CL
+
+    CMP CL, [BE]
+    JZ last_char
+    JMP switch_continue
+
+last_char:
+    ; Wstaw jeszcze ostatni znak
+    MOV DL, [AL]
+    MOV [CL], DL
+    ; Mo¿na dodaæ sygna³/wyœwietlenie
+    ; np. MOV AL, 21 / OUT 01
+    RET
+
+switch_continue:
+    ; SprawdŸ czy przypadkiem nie dotarliœmy do 0D w frazie zastêpuj¹cej
+    MOV DL, [AL]
+    CMP DL, 0D
+    JZ ret_early     ; jeœli koniec frazy zastêpuj¹cej -> koñcz pêtlê
+
+    JMP switch_loop
+
+ret_early:
+    RET
+END
+

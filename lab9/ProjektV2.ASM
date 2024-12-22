@@ -1,3 +1,4 @@
+CLO
   MOV CL, C0         ; pocz¹tek zapisu zdania
     CALL 18
 
@@ -7,7 +8,6 @@
     MOV CL, F0         ; pocz¹tek zapisu frazy zastêpuj¹cej
     CALL 18
     CALL 26
-    CALL 79
 
 ORG 18			; procedura wczytuj¹ca dane
 rs:
@@ -22,8 +22,8 @@ ORG 26
 start_search:
     MOV CL, C0       ; wskaŸnik na pocz¹tek zdania
     MOV DL, E0       ; wskaŸnik na pocz¹tek frazy
-    MOV BL, 0       ; BL = adres BD
-    MOV [BD], BL      ; [BD] = 0 => jeszcze nie mamy pocz¹tku dopasowania
+    MOV BL, 0       ; BL = adres BC
+    MOV [BC], BL      ; [BC] = 0 => jeszcze nie mamy pocz¹tku dopasowania
 
 rep:
     MOV AL, [CL]     ; AL = bie¿¹cy znak zdania
@@ -39,22 +39,22 @@ rep:
 
     ; brak dopasowania
     MOV BL, 0      
-    MOV [BD], BL       ; BD = 0 => reset pocz¹tku
+    MOV [BC], BL       ; BC = 0 => reset pocz¹tku
     MOV DL, E0       ; wróæ DL do E0
     INC CL
     JMP rep
 
 matched_char:
     ; sprawdŸ, czy to pierwszy pasuj¹cy znak
-    MOV BL, BD
-    MOV AL, [BL]     ; AL = [BD]
+    MOV BL, BC
+    MOV AL, [BL]     ; AL = [BC]
     CMP AL, 0
     JNZ continue_match
 
     ; jeœli AL=0 => to pierwszy dopasowany znak
     PUSH CL
     POP AL
-    MOV [BL], AL     ; BD = CL
+    MOV [BL], AL     ; BC = CL
 
 continue_match:
     ; Przesuñ wskaŸniki
@@ -72,19 +72,20 @@ phrase_end:
     ; Ca³a fraza dopasowana
     ; CL jest ju¿ na znak "za" ostatnim dopasowanym
     DEC CL
-    MOV BL, BE
-    MOV [BL], CL     ; BE = koniec wyst¹pienia (CL)
-	JMP finish
+    MOV BL, BD
+    MOV [BL], CL     ; BD = koniec wyst¹pienia (CL)
+	CALL 80
+	JMP rep
 
-ORG 79
+ORG 80
 	MOV AL, F0	; adres pocz¹tku frazy zamieniaj¹cej
-	MOV CL, [BD]    ; adres pocz¹tku wyst¹pienia
+	MOV CL, [BC]    ; adres pocz¹tku wyst¹pienia
 	MOV DL, [AL]	; litera frazy zamieniaj¹cej
 switch:
 	MOV [CL], DL
 	INC AL
 	INC CL
-	CMP CL, [BE]
+	CMP CL, [BD]
 	JZ end_switch
 	JMP switch
 end_switch:
