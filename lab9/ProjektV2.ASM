@@ -1,5 +1,5 @@
 CLO
-  MOV CL, C0         ; pocz¹tek zapisu zdania
+    MOV CL, C0         ; pocz¹tek zapisu zdania
     CALL 18
 
     MOV CL, E0         ; pocz¹tek zapisu frazy
@@ -46,15 +46,14 @@ rep:
 
 matched_char:
     ; sprawdŸ, czy to pierwszy pasuj¹cy znak
-    MOV BL, BC
-    MOV AL, [BL]     ; AL = [BC]
+    MOV AL, [BC]     ; AL = [BC]
     CMP AL, 0
     JNZ continue_match
 
     ; jeœli AL=0 => to pierwszy dopasowany znak
     PUSH CL
     POP AL
-    MOV [BL], AL     ; BC = CL
+    MOV [BC], AL     ; BC = CL
 
 continue_match:
     ; Przesuñ wskaŸniki
@@ -65,7 +64,6 @@ continue_match:
     MOV BL, [DL]
     CMP BL, 0D
     JZ phrase_end
-
     JMP rep
 
 phrase_end:
@@ -80,8 +78,8 @@ phrase_end:
 ORG 80
 	MOV AL, F0	; adres pocz¹tku frazy zamieniaj¹cej
 	MOV CL, [BC]    ; adres pocz¹tku wyst¹pienia
-	MOV DL, [AL]	; litera frazy zamieniaj¹cej
 switch:
+	MOV DL, [AL]	; litera frazy zamieniaj¹cej
 	MOV [CL], DL
 	INC AL
 	INC CL
@@ -89,19 +87,19 @@ switch:
 	JZ end_switch
 	JMP switch
 end_switch:
+	MOV DL, [AL]
 	MOV [CL], DL
-	MOV AL, 21
-	OUT 01
 	JMP finish
 finish:
     RET
-
 
 isFound:
     MOV AL, [BD]     
     CMP AL, 0
     JZ not_found
-    RET
+    MOV AL, 21
+    OUT 01
+    JMP endl
 not_found:
 	MOV AL, 81
 	OUT 01
