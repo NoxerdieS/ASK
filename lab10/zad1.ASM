@@ -3,7 +3,7 @@ DB 0D
 
 Start:
 	MOV AL, A
-	MOV BL, 0
+	MOV BL, 5
 	CALL 30
 	JMP endl
 ORG 30

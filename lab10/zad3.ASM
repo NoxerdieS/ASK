@@ -1,19 +1,19 @@
-JMP Main
-JMP Wrap
+JMP start
+JMP wrap
 DB 0E
 
-Main:
+start:
 	MOV DL, C0
 	MOV BL, A0
 
-Wrap:
+wrap:
 	MOV BL, A0
 
-Rep:
+rep:
 	IN 00
 	MOV [BL], AL
-	CMP BL, A5
-	JZ Wrap
+	CMP BL, A4
+	JZ wrap
 	INC BL
 	CMP AL, 0D
 	JZ print
@@ -25,10 +25,10 @@ rep2:
 	MOV AL, [CL]
 	MOV [DL], AL
 	INC CL
-	CMP CL, A5
-	JZ Main
+	CMP CL, A4
+	JZ start
 	INC DL
 	JMP rep2
 
 Endl:
-	END
+	END 

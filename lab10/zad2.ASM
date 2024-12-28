@@ -1,4 +1,3 @@
-CLO
 JMP Start
 DB 01
 DB 40

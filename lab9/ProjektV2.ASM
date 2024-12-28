@@ -70,8 +70,7 @@ phrase_end:
     ; Ca³a fraza dopasowana
     ; CL jest ju¿ na znak "za" ostatnim dopasowanym
     DEC CL
-    MOV BL, BD
-    MOV [BL], CL     ; BD = koniec wyst¹pienia (CL)
+    MOV [BD], CL     ; BD = koniec wyst¹pienia (CL)
 	CALL 80
 	JMP rep
 
