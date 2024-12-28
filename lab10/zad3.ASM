@@ -1,102 +1,34 @@
-; --- Kod i wektor w niskich adresach
-ORG 00
-JMP start
-DB 10
-DB 00
+JMP Main
+JMP Wrap
+DB 0E
 
-ORG 05
-start:
-loop_main:
-    INT 02
-    JMP loop_main
+Main:
+	MOV DL, C0
+	MOV BL, A0
 
-; --- Procedura przerwania INT 04 (od 1E)
-ORG 10
-int_04_handler:
-    IN 00          ; AL = znak z klawiatury
+Wrap:
+	MOV BL, A0
 
-    ; read w [50], write w [51]
-    MOV DL, 50
-    MOV BL, [DL]   ; BL = read
-    MOV DL, 51
-    MOV CL, [DL]   ; CL = write
+Rep:
+	IN 00
+	MOV [BL], AL
+	CMP BL, A5
+	JZ Wrap
+	INC BL
+	CMP AL, 0D
+	JZ print
+	INT 04
 
-    ; zapisz AL do bufora (60..64) => base 60 + CL
-    MOV DL, 60
-    ADD DL, CL
-    MOV [DL], AL
+print:
+	MOV CL, A0
+rep2:
+	MOV AL, [CL]
+	MOV [DL], AL
+	INC CL
+	CMP CL, A5
+	JZ Main
+	INC DL
+	JMP rep2
 
-    ; inkrementacja write
-    INC CL
-    CMP CL, 05
-    JNZ store_write
-    MOV CL, 00
-store_write:
-    ; sprawdz kolizje
-    CMP CL, BL
-    JNZ done_ptr
-    INC BL
-    CMP BL, 05
-    JNZ skip_read_reset
-    MOV BL, 00
-skip_read_reset:
-
-done_ptr:
-    ; zapisz read
-    MOV DL, 50
-    MOV [DL], BL
-    ; zapisz write
-    MOV DL, 51
-    MOV [DL], CL
-
-    ; jesli AL=0D, wyswietl
-    CMP AL, 0D
-    JNZ end_int
-    JMP disp_buffer
-
-disp_buffer:
-    ; wczytaj read i write
-    MOV DL, 50
-    MOV BL, [DL]
-    MOV DL, 51
-    MOV CL, [DL]
-
-disp_loop:
-    CMP BL, CL
-    JZ disp_done
-    ; pobierz z bufora
-    MOV DL, 60
-    ADD DL, BL
-    MOV AL, [DL]
-
-    ; wyslij do portu 01
-    OUT 01
-
-    ; inkrementuj BL
-    INC BL
-    CMP BL, 05
-    JNZ skip_wrap
-    MOV BL, 00
-skip_wrap:
-    ; zapisz read
-    MOV DL, 50
-    MOV [DL], BL
-    JMP disp_loop
-
-disp_done:
-end_int:
-    IRET
-
-; --- Zmienne w pamiêci
-ORG 90
-DB 00   ; read
-DB 00   ; write
-
-ORG A0
-DB 00
-DB 00
-DB 00
-DB 00
-DB 00   ; 5-bajtowy bufor
-
-END
+Endl:
+	END
