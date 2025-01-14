@@ -1,0 +1,6 @@
+MOV AL, 11
+rep:
+	OUT 05
+	ROR AL
+JMP rep
+END
